@@ -97,31 +97,25 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
     }
 
     /**
-     * Inserts the specified element at the tail of this queue if it is
-     * possible to do so immediately without exceeding the queue's capacity,
-     * returning {@code true} upon success and {@code false} if this queue
-     * is full.
+     * Inserts the specified element at the tail of this queue.   If this queue
+     * is full removes head so that the size ot this queue equals the queue's capacity.
      *
      * @throws NullPointerException if the specified element is null
      */
     public boolean offer(E e) {
         if (e == null) throw new NullPointerException();
         final AtomicInteger count = this.count;
-        // TODO should change logic here
-        if (count.get() == capacity){
+
+        if (count.get() == capacity) {
             dequeue();
-        count.getAndDecrement();}
-            //return false;
+            count.getAndDecrement();
+        }
         int c = -1;
         Node<E> node = new Node<E>(e);
         if (count.get() < capacity) {
             enqueue(node);
             c = count.getAndIncrement();
-            //if (c + 1 < capacity)
-            //    notFull.signal();
         }
-//        if (c == 0)
-//            signalNotEmpty();
         return c >= 0;
     }
 
@@ -209,9 +203,6 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
     /**
      * Returns an iterator over the elements in this queue in proper sequence.
      * The elements will be returned in order from first (head) to last (tail).
-     *
-     * <p>The returned iterator is
-     * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
      *
      * @return an iterator over the elements in this queue in proper sequence
      */
