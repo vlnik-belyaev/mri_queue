@@ -4,7 +4,6 @@ import java.util.AbstractQueue;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Queue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -13,47 +12,39 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Queue<E> {
 
     /**
-     * Linked list node class
+     * Node class
      */
     static class Node<E> {
         E item;
-
-        /**
-         * One of:
-         * - the real successor Node
-         * - this Node, meaning the successor is head.next
-         * - null, meaning there is no successor (this is the last node)
-         */
         Node<E> next;
-
         Node(E x) {
             item = x;
         }
     }
 
     /**
-     * The capacity bound, or Integer.MAX_VALUE if none
+     * The capacity bound
      */
     private final int capacity;
 
     /**
      * Current number of elements
      */
-    private final AtomicInteger count = new AtomicInteger();
+    private int count;
     /**
-     * Head of linked list.
+     * Head of queue.
      * Invariant: head.item == null
      */
     transient Node<E> head;
 
     /**
-     * Tail of linked list.
-     * Invariant: last.next == null
+     * Tail of queue.
+     * Invariant: tail.next == null
      */
-    private transient Node<E> last;
+    private transient Node<E> tail;
 
     /**
-     * Creates a {@code MostRecentlyInsertedQueue} with the given (fixed) capacity.
+     * Creates a {@code MostRecentlyInsertedQueue} with the given capacity.
      *
      * @param capacity the capacity of this queue
      * @throws IllegalArgumentException if {@code capacity} is not greater
@@ -62,7 +53,8 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
     public MostRecentlyInsertedQueue(int capacity) {
         if (capacity <= 0) throw new IllegalArgumentException();
         this.capacity = capacity;
-        last = head = new Node<E>(null);
+        this.count = 0;
+        tail = head = new Node<E>(null);
     }
 
     /**
@@ -71,8 +63,7 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
      * @param node the node
      */
     private void enqueue(Node<E> node) {
-        // assert last.next == null;
-        last = last.next = node;
+        tail = tail.next = node;
     }
 
     /**
@@ -81,7 +72,6 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
      * @return the node
      */
     private E dequeue() {
-        // assert head.item == null;
         Node<E> h = head;
         Node<E> first = h.next;
         h.next = h; // help GC
@@ -93,7 +83,7 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
 
 
     public int size() {
-        return count.get();
+        return count;
     }
 
     /**
@@ -104,41 +94,34 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
      */
     public boolean offer(E e) {
         if (e == null) throw new NullPointerException();
-        final AtomicInteger count = this.count;
 
-        if (count.get() == capacity) {
+        if (count == capacity) {
             dequeue();
-            count.getAndDecrement();
+            count--;
         }
-        int c = -1;
+
         Node<E> node = new Node<E>(e);
-        if (count.get() < capacity) {
+        if (count < capacity) {
             enqueue(node);
-            c = count.getAndIncrement();
+            count++;
         }
-        return c >= 0;
+        return true;
     }
 
     public E poll() {
-        final AtomicInteger count = this.count;
-        if (count.get() == 0)
+        if (count == 0)
             return null;
         E x = null;
-        int c = -1;
 
-        if (count.get() > 0) {
+        if (count > 0) {
             x = dequeue();
-            c = count.getAndDecrement();
-//                if (c > 1)
-//                    notEmpty.signal();
+            count--;
         }
-//        if (c == capacity)
-//            signalNotFull();
         return x;
     }
 
     public E peek() {
-        if (count.get() == 0)
+        if (count == 0)
             return null;
         Node<E> first = head.next;
         if (first == null)
@@ -165,33 +148,20 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
      * Unlinks interior Node p with predecessor trail.
      */
     void unlink(Node<E> p, Node<E> trail) {
-        // assert isFullyLocked();
-        // p.next is not changed, to allow iterators that are
-        // traversing p to maintain their weak-consistency guarantee.
         p.item = null;
         trail.next = p.next;
-        if (last == p)
-            last = trail;
-        count.getAndDecrement();
-//        if (count.getAndDecrement() == capacity)
-//            notFull.signal();
+        if (tail == p)
+            tail = trail;
+        count--;
     }
 
     /**
-     * Returns an array containing all of the elements in this queue, in
-     * proper sequence.
-     *
-     * <p>The returned array will be "safe" in that no references to it are
-     * maintained by this queue.  (In other words, this method must allocate
-     * a new array).  The caller is thus free to modify the returned array.
-     *
-     * <p>This method acts as bridge between array-based and collection-based
-     * APIs.
+     * Returns an array containing all of the elements in this queue
      *
      * @return an array containing all of the elements in this queue
      */
     public Object[] toArray() {
-            int size = count.get();
+            int size = count;
             Object[] a = new Object[size];
             int k = 0;
             for (Node<E> p = head.next; p != null; p = p.next)
@@ -207,10 +177,10 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
      * @return an iterator over the elements in this queue in proper sequence
      */
     public Iterator<E> iterator() {
-        return new Itr();
+        return new MRIQItr();
     }
 
-    private class Itr implements Iterator<E> {
+    private class MRIQItr implements Iterator<E> {
         /*
          * Basic weakly-consistent iterator.  At all times hold the next
          * item to hand out so that if hasNext() reports true, we will
@@ -221,7 +191,7 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
         private Node<E> lastRet;
         private E currentElement;
 
-        Itr() {
+        MRIQItr() {
                 current = head.next;
                 if (current != null)
                     currentElement = current.item;
@@ -259,7 +229,7 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
                 return x;
         }
 
-        public void remove() {
+     /*   public void remove() {
             if (lastRet == null)
                 throw new IllegalStateException();
 
@@ -273,7 +243,7 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
                         break;
                     }
                 }
-        }
+        }*/
     }
 
 }

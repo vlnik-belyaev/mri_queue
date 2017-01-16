@@ -3,6 +3,7 @@ import org.junit.Test;
 
 import java.util.Queue;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class TestMRIQueue {
@@ -16,11 +17,7 @@ public class TestMRIQueue {
     public void testEmptyQueue() {
         Queue<Integer> queue = new MostRecentlyInsertedQueue<Integer>(3);
         assertEquals(queue.size(),0);
-//        Integer[] data = (Integer[])queue.toArray();
-//        System.out.println(data);
-        //assertEquals(Collections.EMPTY_LIST.toArray(), queue.toArray());
     }
-
 
     @Test
     public void testOfferToQueue() {
@@ -31,12 +28,9 @@ public class TestMRIQueue {
         queue.offer(4);
         queue.offer(5);
         assertEquals(queue.size(),3);
+        assertArrayEquals(queue.toArray(), new Object[]{3, 4, 5});
         for(Integer item:queue){
             System.out.println(item);
         }
-
-//        Integer[] data = (Integer[])queue.toArray();
-//        System.out.println(data);
-        //assertEquals(Collections.EMPTY_LIST.toArray(), queue.toArray());
     }
 }
