@@ -1,4 +1,5 @@
 import mriqueue.MostRecentlyInsertedQueue;
+import mriqueue.MostRecentlyInsertedBlokingQueue;
 import org.junit.Test;
 
 import java.util.Queue;
@@ -21,7 +22,8 @@ public class TestMRIQueue {
 
     @Test
     public void testOfferToQueue() {
-        Queue<Integer> queue = new MostRecentlyInsertedQueue<Integer>(3);
+       // Queue<Integer> queue = new MostRecentlyInsertedQueue<Integer>(3);
+        Queue<Integer> queue = new MostRecentlyInsertedBlokingQueue<Integer>(3);
         queue.offer(1);
         queue.offer(2);
         queue.offer(3);
@@ -29,6 +31,26 @@ public class TestMRIQueue {
         queue.offer(5);
         assertEquals(queue.size(),3);
         assertArrayEquals(queue.toArray(), new Object[]{3, 4, 5});
+        for(Integer item:queue){
+            System.out.println(item);
+        }
+        Integer p = queue.poll();
+        System.out.println("Polled item = " + p);
+        for(Integer item:queue){
+            System.out.println(item);
+        }
+        p = queue.poll();
+        System.out.println("Polled item = " + p);
+        for(Integer item:queue){
+            System.out.println(item);
+        }
+        p = queue.poll();
+        System.out.println("Polled item = " + p);
+        for(Integer item:queue){
+            System.out.println(item);
+        }
+        p = queue.poll();
+        System.out.println("Polled item = " + p);
         for(Integer item:queue){
             System.out.println(item);
         }
