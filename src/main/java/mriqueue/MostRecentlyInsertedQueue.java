@@ -17,6 +17,7 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
     static class Node<E> {
         E item;
         Node<E> next;
+
         Node(E x) {
             item = x;
         }
@@ -33,13 +34,11 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
     private int count;
     /**
      * Head of queue.
-     * Invariant: head.item == null
      */
-    transient Node<E> head;
+    private transient Node<E> head;
 
     /**
      * Tail of queue.
-     * Invariant: tail.next == null
      */
     private transient Node<E> tail;
 
@@ -80,7 +79,6 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
         first.item = null;
         return x;
     }
-
 
     public int size() {
         return count;
@@ -130,45 +128,19 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
             return first.item;
     }
 
-    public boolean remove(Object o) {
-        if (o == null) return false;
-
-            for (Node<E> trail = head, p = trail.next;
-                 p != null;
-                 trail = p, p = p.next) {
-                if (o.equals(p.item)) {
-                    unlink(p, trail);
-                    return true;
-                }
-            }
-            return false;
-    }
-
-    /**
-     * Unlinks interior Node p with predecessor trail.
-     */
-    void unlink(Node<E> p, Node<E> trail) {
-        p.item = null;
-        trail.next = p.next;
-        if (tail == p)
-            tail = trail;
-        count--;
-    }
-
     /**
      * Returns an array containing all of the elements in this queue
      *
      * @return an array containing all of the elements in this queue
      */
     public Object[] toArray() {
-            int size = count;
-            Object[] a = new Object[size];
-            int k = 0;
-            for (Node<E> p = head.next; p != null; p = p.next)
-                a[k++] = p.item;
-            return a;
+        int size = count;
+        Object[] a = new Object[size];
+        int k = 0;
+        for (Node<E> p = head.next; p != null; p = p.next)
+            a[k++] = p.item;
+        return a;
     }
-
 
     /**
      * Returns an iterator over the elements in this queue in proper sequence.
@@ -181,20 +153,13 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
     }
 
     private class MRIQItr implements Iterator<E> {
-        /*
-         * Basic weakly-consistent iterator.  At all times hold the next
-         * item to hand out so that if hasNext() reports true, we will
-         * still have it to return even if lost race with a take etc.
-         */
-
         private Node<E> current;
-        private Node<E> lastRet;
         private E currentElement;
 
         MRIQItr() {
-                current = head.next;
-                if (current != null)
-                    currentElement = current.item;
+            current = head.next;
+            if (current != null)
+                currentElement = current.item;
         }
 
         public boolean hasNext() {
@@ -203,13 +168,13 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
 
         /**
          * Returns the next live successor of p, or null if no such.
-         *
+         * <p>
          * Unlike other traversal methods, iterators need to handle both:
          * - dequeued nodes (p.next == p)
          * - (possibly multiple) interior removed nodes (p.item == null)
          */
         private Node<E> nextNode(Node<E> p) {
-            for (;;) {
+            for (; ; ) {
                 Node<E> s = p.next;
                 if (s == p)
                     return head.next;
@@ -220,30 +185,13 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
         }
 
         public E next() {
-                if (current == null)
-                    throw new NoSuchElementException();
-                E x = currentElement;
-                lastRet = current;
-                current = nextNode(current);
-                currentElement = (current == null) ? null : current.item;
-                return x;
+            if (current == null)
+                throw new NoSuchElementException();
+            E x = currentElement;
+            current = nextNode(current);
+            currentElement = (current == null) ? null : current.item;
+            return x;
         }
-
-     /*   public void remove() {
-            if (lastRet == null)
-                throw new IllegalStateException();
-
-                Node<E> node = lastRet;
-                lastRet = null;
-                for (Node<E> trail = head, p = trail.next;
-                     p != null;
-                     trail = p, p = p.next) {
-                    if (p == node) {
-                        unlink(p, trail);
-                        break;
-                    }
-                }
-        }*/
     }
 
 }

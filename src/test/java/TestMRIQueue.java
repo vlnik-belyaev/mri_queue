@@ -22,8 +22,8 @@ public class TestMRIQueue {
 
     @Test
     public void testOfferToQueue() {
-       // Queue<Integer> queue = new MostRecentlyInsertedQueue<Integer>(3);
-        Queue<Integer> queue = new MostRecentlyInsertedBlockingQueue<Integer>(3);
+        Queue<Integer> queue = new MostRecentlyInsertedQueue<Integer>(3);
+        //Queue<Integer> queue = new MostRecentlyInsertedBlockingQueue<Integer>(3);
         queue.offer(1);
         queue.offer(2);
         queue.offer(3);
