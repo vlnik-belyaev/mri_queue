@@ -10,6 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by vlnik on 1/15/2017.
+ * Based on java.util.concurrent.LinkedBlockingQueue
  */
 public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> implements BlockingQueue<E> {
 
@@ -19,6 +20,7 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
     static class Node<E> {
         E item;
         Node<E> next;
+
         Node(E x) {
             item = x;
         }
@@ -35,26 +37,32 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
     private final AtomicInteger count = new AtomicInteger();
     /**
      * Head of queue.
-     * Invariant: head.item == null
      */
-    transient Node<E> head;
+    private transient Node<E> head;
 
     /**
      * Tail of queue.
-     * Invariant: tail.next == null
      */
     private transient Node<E> tail;
 
-    /** Lock held by take, poll, etc */
+    /**
+     * Lock held by take, poll, etc
+     */
     private final ReentrantLock takeLock = new ReentrantLock();
 
-    /** Wait queue for waiting takes */
+    /**
+     * Wait queue for waiting takes
+     */
     private final Condition notEmpty = takeLock.newCondition();
 
-    /** Lock held by put, offer, etc */
+    /**
+     * Lock held by put, offer, etc
+     */
     private final ReentrantLock putLock = new ReentrantLock();
 
-    /** Wait queue for waiting puts */
+    /**
+     * Wait queue for waiting puts
+     */
     private final Condition notFull = putLock.newCondition();
 
 
@@ -96,7 +104,6 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
     public MostRecentlyInsertedBlockingQueue(int capacity) {
         if (capacity <= 0) throw new IllegalArgumentException();
         this.capacity = capacity;
-        //this.count.set(0);
         tail = head = new Node<E>(null);
     }
 
@@ -155,22 +162,19 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
         if (e == null) throw new NullPointerException();
         final AtomicInteger count = this.count;
 
-        int c = -1;
+        int c;
         Node<E> node = new Node<E>(e);
         final ReentrantLock putLock = this.putLock;
         putLock.lock();
         try {
             if (count.get() == capacity) {
                 dequeue();
-                c = count.getAndDecrement();
+                count.getAndDecrement();
             }
-// TODO do I really need this check?
-            if (count.get() < capacity) {
-                enqueue(node);
-                c = count.getAndIncrement();
-                if (c + 1 < capacity)
-                    notFull.signal();
-            }
+            enqueue(node);
+            c = count.getAndIncrement();
+            if (c + 1 < capacity)
+                notFull.signal();
         } finally {
             putLock.unlock();
         }
@@ -180,30 +184,24 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
     }
 
     @Override
-    public void put(E e){
-            //throws InterruptedException {
+    public void put(E e) {
         if (e == null) throw new NullPointerException();
         // Note: convention in all put/take/etc is to preset local var
         // holding count negative to indicate failure unless set.
-        int c = -1;
+        int c;
         Node<E> node = new Node<E>(e);
         final ReentrantLock putLock = this.putLock;
         final AtomicInteger count = this.count;
         putLock.lock();
-        //putLock.lockInterruptibly();
         try {
             if (count.get() == capacity) {
                 dequeue();
-                c = count.getAndDecrement();
+                count.getAndDecrement();
             }
-// TODO do I really need this check?
-            if (count.get() < capacity) {
-                enqueue(node);
-                c = count.getAndIncrement();
-                if (c + 1 < capacity)
-                    notFull.signal();
-            }
-
+            enqueue(node);
+            c = count.getAndIncrement();
+            if (c + 1 < capacity)
+                notFull.signal();
         } finally {
             putLock.unlock();
         }
@@ -212,15 +210,15 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
     }
 
     @Override
-    public boolean offer(E e, long timeout, TimeUnit unit){
-           // throws InterruptedException {
+    public boolean offer(E e, long timeout, TimeUnit unit) {
+        /* It's always an item can be added, there is nothing to wait */
         return offer(e);
     }
 
     @Override
     public E take() throws InterruptedException {
         E x;
-        int c = -1;
+        int c;
         final AtomicInteger count = this.count;
         final ReentrantLock takeLock = this.takeLock;
         takeLock.lockInterruptibly();
@@ -235,16 +233,13 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
         } finally {
             takeLock.unlock();
         }
-        // TODO Do we really need the following signal
-        if (c == capacity)
-            signalNotFull();
         return x;
     }
 
     @Override
     public E poll(long timeout, TimeUnit unit) throws InterruptedException {
         E x = null;
-        int c = -1;
+        int c;
         long nanos = unit.toNanos(timeout);
         final AtomicInteger count = this.count;
         final ReentrantLock takeLock = this.takeLock;
@@ -262,7 +257,6 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
         } finally {
             takeLock.unlock();
         }
-        // TODO Do we really need the following signal?
         if (c == capacity)
             signalNotFull();
         return x;
@@ -291,7 +285,6 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
         } finally {
             takeLock.unlock();
         }
-        // TODO Do we really need the following signal?
         if (c == capacity)
             signalNotFull();
         return x;
@@ -313,29 +306,6 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
         }
     }
 
-    /**
-     * TODO Do I really need this method?
-     * @param o element to be removed from this queue, if present
-     * @return element to be removed from this queue, if present
-     */
-    public boolean remove(Object o) {
-        if (o == null) return false;
-        fullyLock();
-        try {
-            for (Node<E> trail = head, p = trail.next;
-                 p != null;
-                 trail = p, p = p.next) {
-                if (o.equals(p.item)) {
-                    unlink(p, trail);
-                    return true;
-                }
-            }
-            return false;
-        } finally {
-            fullyUnlock();
-        }
-    }
-
     @Override
     public int drainTo(Collection<? super E> c) {
         //TODO not implemented yet
@@ -348,16 +318,6 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
         return 0;
     }
 
-    /**
-     * Unlinks interior Node p with predecessor trail.
-     */
-    void unlink(Node<E> p, Node<E> trail) {
-        p.item = null;
-        trail.next = p.next;
-        if (tail == p)
-            tail = trail;
-        count.getAndDecrement();
-    }
 
     /**
      * Returns an array containing all of the elements in this queue
@@ -390,35 +350,22 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
     }
 
     private class MRIBBQItr implements Iterator<E> {
-        /*
-         * Basic weakly-consistent iterator.  At all times hold the next
-         * item to hand out so that if hasNext() reports true, we will
-         * still have it to return even if lost race with a take etc.
-         */
 
         private Node<E> current;
-        private Node<E> lastRet;
         private E currentElement;
 
         MRIBBQItr() {
-                current = head.next;
-                if (current != null)
-                    currentElement = current.item;
+            current = head.next;
+            if (current != null)
+                currentElement = current.item;
         }
 
         public boolean hasNext() {
             return current != null;
         }
 
-        /**
-         * Returns the next live successor of p, or null if no such.
-         *
-         * Unlike other traversal methods, iterators need to handle both:
-         * - dequeued nodes (p.next == p)
-         * - (possibly multiple) interior removed nodes (p.item == null)
-         */
         private Node<E> nextNode(Node<E> p) {
-            for (;;) {
+            for (; ; ) {
                 Node<E> s = p.next;
                 if (s == p)
                     return head.next;
@@ -429,30 +376,14 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
         }
 
         public E next() {
-                if (current == null)
-                    throw new NoSuchElementException();
-                E x = currentElement;
-                lastRet = current;
-                current = nextNode(current);
-                currentElement = (current == null) ? null : current.item;
-                return x;
+            if (current == null)
+                throw new NoSuchElementException();
+            E x = currentElement;
+            current = nextNode(current);
+            currentElement = (current == null) ? null : current.item;
+            return x;
         }
 
-     /*   public void remove() {
-            if (lastRet == null)
-                throw new IllegalStateException();
-
-                Node<E> node = lastRet;
-                lastRet = null;
-                for (Node<E> trail = head, p = trail.next;
-                     p != null;
-                     trail = p, p = p.next) {
-                    if (p == node) {
-                        unlink(p, trail);
-                        break;
-                    }
-                }
-        }*/
     }
 
 }

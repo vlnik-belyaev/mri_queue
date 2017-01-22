@@ -3,6 +3,8 @@ package mriqueue;
 import java.util.concurrent.BlockingQueue;
 
 /**
+ * This test class demonstrates MostRecentlyInsertedBlockingQueue.
+ * Each producer and consumer prints the content of the shared collection at the end.
  * Created by vlnik on 1/22/2017.
  */
 public class TestApp {
