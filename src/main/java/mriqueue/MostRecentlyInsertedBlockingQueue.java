@@ -11,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Created by vlnik on 1/15/2017.
  */
-public class MostRecentlyInsertedBlokingQueue<E> extends AbstractQueue<E> implements BlockingQueue<E> {
+public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> implements BlockingQueue<E> {
 
     /**
      * Node class
@@ -93,7 +93,7 @@ public class MostRecentlyInsertedBlokingQueue<E> extends AbstractQueue<E> implem
      * @throws IllegalArgumentException if {@code capacity} is not greater
      *                                  than zero
      */
-    public MostRecentlyInsertedBlokingQueue(int capacity) {
+    public MostRecentlyInsertedBlockingQueue(int capacity) {
         if (capacity <= 0) throw new IllegalArgumentException();
         this.capacity = capacity;
         //this.count.set(0);
@@ -338,11 +338,13 @@ public class MostRecentlyInsertedBlokingQueue<E> extends AbstractQueue<E> implem
 
     @Override
     public int drainTo(Collection<? super E> c) {
+        //TODO not implemented yet
         return 0;
     }
 
     @Override
     public int drainTo(Collection<? super E> c, int maxElements) {
+        //TODO not implemented yet
         return 0;
     }
 
@@ -384,10 +386,10 @@ public class MostRecentlyInsertedBlokingQueue<E> extends AbstractQueue<E> implem
      * @return an iterator over the elements in this queue in proper sequence
      */
     public Iterator<E> iterator() {
-        return new MRIQItr();
+        return new MRIBBQItr();
     }
 
-    private class MRIQItr implements Iterator<E> {
+    private class MRIBBQItr implements Iterator<E> {
         /*
          * Basic weakly-consistent iterator.  At all times hold the next
          * item to hand out so that if hasNext() reports true, we will
@@ -398,7 +400,7 @@ public class MostRecentlyInsertedBlokingQueue<E> extends AbstractQueue<E> implem
         private Node<E> lastRet;
         private E currentElement;
 
-        MRIQItr() {
+        MRIBBQItr() {
                 current = head.next;
                 if (current != null)
                     currentElement = current.item;
