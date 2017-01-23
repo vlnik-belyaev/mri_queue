@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by vlnik on 1/15/2017.
- * Based on java.util.concurrent.LinkedBlockingQueue
+ * Influenced by java.util.concurrent.LinkedBlockingQueue
  */
 public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> implements BlockingQueue<E> {
 
@@ -308,13 +308,13 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
 
     @Override
     public int drainTo(Collection<? super E> c) {
-        //TODO not implemented yet
+        //not implemented
         return 0;
     }
 
     @Override
     public int drainTo(Collection<? super E> c, int maxElements) {
-        //TODO not implemented yet
+        //not implemented
         return 0;
     }
 

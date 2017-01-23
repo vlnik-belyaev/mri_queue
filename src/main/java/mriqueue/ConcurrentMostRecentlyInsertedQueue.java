@@ -3,7 +3,9 @@ package mriqueue;
 import java.util.*;
 
 /**
- * Created by vlnik on 1/23/2017.
+ * NOT FINISHED
+ * Created by vlnik on 1/22/2017.
+ *
  */
 public class ConcurrentMostRecentlyInsertedQueue<E> extends AbstractQueue<E>
         implements Queue<E>{
@@ -56,6 +58,16 @@ public class ConcurrentMostRecentlyInsertedQueue<E> extends AbstractQueue<E>
 
     private volatile Node<E> tail;
 
+    private volatile int capacity;
+
+    /**
+     * Creates a {@code ConcurrentLinkedQueue} that is initially empty.
+     */
+    public ConcurrentMostRecentlyInsertedQueue(int capacity) {
+        head = tail = new Node<E>(null);
+        this.capacity = capacity;
+    }
+
     @Override
     public Iterator<E> iterator() {
         return new CRMIQItr();
@@ -78,6 +90,7 @@ public class ConcurrentMostRecentlyInsertedQueue<E> extends AbstractQueue<E>
     }
     @Override
     public boolean offer(E e) {
+        // TODO implement this
         return false;
     }
 
