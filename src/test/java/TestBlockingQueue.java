@@ -12,7 +12,7 @@ public class TestBlockingQueue {
     @Test
     public void testEmptyQueue() {
         Queue<Integer> queue = new MostRecentlyInsertedBlockingQueue<Integer>(3);
-        assertEquals(queue.size(),0);
+        assertEquals(queue.size(), 0);
     }
 
     @Test
@@ -31,8 +31,8 @@ public class TestBlockingQueue {
     public void testPollQueue() {
         Queue<Integer> queue = new MostRecentlyInsertedBlockingQueue<Integer>(3);
         queue.offer(1);
-        assertEquals(queue.poll(),new Integer (1));
-        assertEquals(queue.size(),0);
+        assertEquals(queue.poll(), new Integer(1));
+        assertEquals(queue.size(), 0);
     }
 
     @Test
@@ -43,7 +43,7 @@ public class TestBlockingQueue {
         queue.offer(3);
         queue.offer(4);
         queue.offer(5);
-        assertEquals(queue.size(),3);
+        assertEquals(queue.size(), 3);
         assertArrayEquals(queue.toArray(), new Object[]{3, 4, 5});
     }
 }

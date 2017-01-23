@@ -7,7 +7,7 @@ import java.util.concurrent.BlockingQueue;
  * Each producer and consumer prints the content of the shared collection at the end.
  * Created by vlnik on 1/22/2017.
  */
-public class TestApp {
+public class DemonstrateMultiThreadApp {
     public static void main(String[] args) {
         BlockingQueue<Integer> data = new MostRecentlyInsertedBlockingQueue<Integer>(20);
         for (int i = 0; i < 5; i++) {

@@ -1,5 +1,4 @@
 import mriqueue.MostRecentlyInsertedQueue;
-import mriqueue.MostRecentlyInsertedBlockingQueue;
 import org.junit.Test;
 
 import java.util.Queue;
@@ -9,11 +8,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 public class TestQueue {
-
     @Test
     public void testEmptyQueue() {
         Queue<Integer> queue = new MostRecentlyInsertedQueue<Integer>(3);
-        assertEquals(queue.size(),0);
+        assertEquals(queue.size(), 0);
     }
 
     @Test
@@ -32,8 +30,8 @@ public class TestQueue {
     public void testPollQueue() {
         Queue<Integer> queue = new MostRecentlyInsertedQueue<Integer>(3);
         queue.offer(1);
-        assertEquals(queue.poll(),new Integer (1));
-        assertEquals(queue.size(),0);
+        assertEquals(queue.poll(), new Integer(1));
+        assertEquals(queue.size(), 0);
     }
 
     @Test
@@ -44,7 +42,7 @@ public class TestQueue {
         queue.offer(3);
         queue.offer(4);
         queue.offer(5);
-        assertEquals(queue.size(),3);
+        assertEquals(queue.size(), 3);
         assertArrayEquals(queue.toArray(), new Object[]{3, 4, 5});
     }
 }
