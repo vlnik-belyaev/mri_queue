@@ -35,12 +35,12 @@ public class MostRecentlyInsertedQueue<E> extends AbstractQueue<E> implements Qu
     /**
      * Head of queue.
      */
-    private transient Node<E> head;
+    private Node<E> head;
 
     /**
      * Tail of queue.
      */
-    private transient Node<E> tail;
+    private Node<E> tail;
 
     /**
      * Creates a {@code MostRecentlyInsertedQueue} with the given capacity.

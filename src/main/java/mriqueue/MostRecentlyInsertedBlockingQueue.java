@@ -38,12 +38,12 @@ public class MostRecentlyInsertedBlockingQueue<E> extends AbstractQueue<E> imple
     /**
      * Head of queue.
      */
-    private transient Node<E> head;
+    private Node<E> head;
 
     /**
      * Tail of queue.
      */
-    private transient Node<E> tail;
+    private Node<E> tail;
 
     /**
      * Lock held by take, poll, etc
